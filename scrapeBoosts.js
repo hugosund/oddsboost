@@ -1,26 +1,20 @@
-scrapeBoosts.js
 const fs = require('fs');
 const puppeteer = require('puppeteer');
+const ftp = require('basic-ftp');
 
-// Lista på svenska spelbolag med oddsboostar
 const bookmakers = [
     { name: "Bet365", url: "https://www.bet365.com/#/HO/" },
-    { name: "BetMGM", url: "https://www.betmgm.se/sport#featured" },
+    { name: "BetMGM", url: "https://www.betmgm.se/sport#featured" }
     // Lägg till fler licensierade svenska spelbolag här
 ];
 
-// Funktion för att hämta oddsboostar från en bookmaker
 async function fetchBoosts(bookmaker, page) {
     try {
         await page.goto(bookmaker.url, { waitUntil: 'networkidle2', timeout: 60000 });
-
-        // Här behöver du justera selector för oddsboostar per bolag
-        // Exempel generisk: alla element med 'boost', 'enhanced' i class
         const boosts = await page.evaluate(() => {
             const elements = Array.from(document.querySelectorAll('[class*="boost"], [class*="enhanced"]'));
             return elements.map(el => el.innerText.trim()).filter(Boolean);
         });
-
         return { bookmaker: bookmaker.name, boosts };
     } catch (err) {
         console.error(`Fel vid hämtning av ${bookmaker.name}:`, err);
@@ -28,7 +22,24 @@ async function fetchBoosts(bookmaker, page) {
     }
 }
 
-// Huvudfunktion
+async function uploadToFTP() {
+    const client = new ftp.Client();
+    client.ftp.verbose = true;
+    try {
+        await client.access({
+            host: "DIN_FTP_SERVER",
+            user: "DITT_FTP_ANVÄNDARNAMN",
+            password: "DITT_LÖSENORD",
+            secure: false
+        });
+        await client.uploadFrom("boosts.html", "/wp-content/uploads/oddsbot/boosts.html");
+        console.log("boosts.html uppladdad till WordPress!");
+    } catch(err) {
+        console.error(err);
+    }
+    client.close();
+}
+
 (async () => {
     const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
     const page = await browser.newPage();
@@ -44,20 +55,18 @@ async function fetchBoosts(bookmaker, page) {
 
     await browser.close();
 
-    // Bygg HTML som kan visas på WordPress
     let html = `<div class="oddsboost-widget"><h2>⚡ Oddsboostar</h2>`;
     for (const result of results) {
         if (result.boosts.length > 0) {
             html += `<h3>${result.bookmaker}</h3><ul>`;
-            result.boosts.forEach(boost => {
-                html += `<li>${boost}</li>`;
-            });
+            result.boosts.forEach(boost => html += `<li>${boost}</li>`);
             html += `</ul>`;
         }
     }
     html += `</div>`;
 
-    // Spara som boosts.html som du sedan kan ladda via iframe på WordPress
     fs.writeFileSync('boosts.html', html, 'utf-8');
     console.log('boosts.html skapad/uppdaterad!');
+
+    await uploadToFTP();
 })();
