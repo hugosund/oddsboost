@@ -27,9 +27,9 @@ async function uploadToFTP() {
     client.ftp.verbose = true;
     try {
         await client.access({
-            host: "DIN_FTP_SERVER",
-            user: "DITT_FTP_ANVÄNDARNAMN",
-            password: "DITT_LÖSENORD",
+            host: process.env.FTP_HOST,
+            user: process.env.FTP_USER,
+            password: process.env.FTP_PASS,
             secure: false
         });
         await client.uploadFrom("boosts.html", "/wp-content/uploads/oddsbot/boosts.html");
