@@ -1,5 +1,5 @@
 const fs = require('fs');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 const ftp = require('basic-ftp');
 
 const bookmakers = [
@@ -41,7 +41,11 @@ async function uploadToFTP() {
 }
 
 (async () => {
-    const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
+    const browser = await puppeteer.launch({
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    headless: true
+});
     const page = await browser.newPage();
     page.setDefaultNavigationTimeout(60000);
 
