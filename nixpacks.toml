@@ -1,10 +1,5 @@
-[phases.setup]
-# Ingen setup behövs för Puppeteer med inbyggd Chromium
-
 [phases.build]
-# Byggsteget kör npm install
 command = "npm install"
 
 [phases.start]
-# Starta appen
 command = "npm start"
