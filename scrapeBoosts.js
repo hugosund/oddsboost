@@ -1,8 +1,7 @@
 const fs = require('fs');
-const puppeteer = require('puppeteer'); // OBS: puppeteer med inbyggd Chromium
+const puppeteer = require('puppeteer');
 const ftp = require('basic-ftp');
 
-// Lista över bettingsidor med svensk licens
 const bookmakers = [
     { name: "Bet365", url: "https://www.bet365.com/#/HO/" },
     { name: "BetMGM", url: "https://www.betmgm.se/sport#featured" },
@@ -19,7 +18,6 @@ const bookmakers = [
 async function fetchBoosts(bookmaker, page) {
     try {
         await page.goto(bookmaker.url, { waitUntil: "networkidle2", timeout: 60000 });
-
         const boosts = await page.evaluate(() => {
             const nodes = Array.from(document.querySelectorAll('body *'));
             return nodes
@@ -27,7 +25,6 @@ async function fetchBoosts(bookmaker, page) {
                 .map(el => el.innerText.trim())
                 .filter(Boolean);
         });
-
         return { bookmaker: bookmaker.name, boosts };
     } catch (err) {
         console.error(`Fel vid hämtning av ${bookmaker.name}:`, err);
@@ -56,11 +53,8 @@ async function uploadToFTP() {
 
 (async () => {
     const browser = await puppeteer.launch({
-        headless: "new",
-        args: [
-            "--no-sandbox",
-            "--disable-setuid-sandbox"
-        ]
+        headless: true, // kör utan GUI
+        args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
 
     const page = await browser.newPage();
