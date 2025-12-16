@@ -1,6 +1,10 @@
 [phases.setup]
-aptPkgs = [
-  "chromium",
-  "ca-certificates",
-  "fonts-liberation"
-]
+# Ingen setup behövs för Puppeteer med inbyggd Chromium
+
+[phases.build]
+# Byggsteget kör npm install
+command = "npm install"
+
+[phases.start]
+# Starta appen
+command = "npm start"
