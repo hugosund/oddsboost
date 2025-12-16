@@ -1,5 +1,5 @@
 const fs = require('fs');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer'); // OBS: puppeteer med inbyggd Chromium
 const ftp = require('basic-ftp');
 
 // Lista över bettingsidor med svensk licens
@@ -20,10 +20,8 @@ async function fetchBoosts(bookmaker, page) {
     try {
         await page.goto(bookmaker.url, { waitUntil: "networkidle2", timeout: 60000 });
 
-        // Försök hitta oddsboosts via ord/nyckeltext i HTML
         const boosts = await page.evaluate(() => {
             const nodes = Array.from(document.querySelectorAll('body *'));
-
             return nodes
                 .filter(el => /boost|förhöjt odds|enhanced|förhöjt/i.test(el.innerText))
                 .map(el => el.innerText.trim())
@@ -61,11 +59,7 @@ async function uploadToFTP() {
         headless: "new",
         args: [
             "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-gpu",
-            "--no-zygote",
-            "--single-process"
+            "--disable-setuid-sandbox"
         ]
     });
 
@@ -73,7 +67,6 @@ async function uploadToFTP() {
     page.setDefaultNavigationTimeout(60000);
 
     const results = [];
-
     for (const bookmaker of bookmakers) {
         console.log(`Hämtar oddsboostar från ${bookmaker.name}...`);
         const data = await fetchBoosts(bookmaker, page);
@@ -86,9 +79,7 @@ async function uploadToFTP() {
     for (const result of results) {
         if (result.boosts.length > 0) {
             html += `<h3>${result.bookmaker}</h3><ul>`;
-            result.boosts.forEach(b => {
-                html += `<li>${b}</li>`;
-            });
+            result.boosts.forEach(b => html += `<li>${b}</li>`);
             html += `</ul>`;
         }
     }
