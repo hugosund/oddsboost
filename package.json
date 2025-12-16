@@ -2,8 +2,11 @@
   "name": "oddsbot",
   "version": "1.0.0",
   "main": "scrapeBoosts.js",
+  "scripts": {
+    "start": "node scrapeBoosts.js"
+  },
   "dependencies": {
-    "puppeteer-core": "^21.0.0",
+    "puppeteer": "^21.7.0",
     "basic-ftp": "^5.0.0"
   }
 }
