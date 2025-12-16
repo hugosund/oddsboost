@@ -39,12 +39,17 @@ async function uploadToFTP() {
     }
     client.close();
 }
-
 (async () => {
     const browser = await puppeteer.launch({
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    headless: true
+  headless: "new",
+  args: [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-gpu",
+    "--no-zygote",
+    "--single-process"
+  ]
 });
     const page = await browser.newPage();
     page.setDefaultNavigationTimeout(60000);
