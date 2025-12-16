@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "scrapeBoosts.js",
   "dependencies": {
-    "puppeteer": "^21.0.0"
+    "puppeteer-core": "^21.0.0",
+    "basic-ftp": "^5.0.0"
   }
 }
