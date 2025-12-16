@@ -1,5 +1,5 @@
 const fs = require('fs');
-const puppeteer = require('puppeteer-core');
+const puppeteer = require('puppeteer'); // OBS: puppeteer, inte puppeteer-core
 const ftp = require('basic-ftp');
 
 const bookmakers = [
@@ -8,12 +8,16 @@ const bookmakers = [
     // Lägg till fler licensierade svenska spelbolag här
 ];
 
+// Hämtar oddsboostar för en bookmaker
 async function fetchBoosts(bookmaker, page) {
     try {
         await page.goto(bookmaker.url, { waitUntil: 'networkidle2', timeout: 60000 });
         const boosts = await page.evaluate(() => {
-            const elements = Array.from(document.querySelectorAll('[class*="boost"], [class*="enhanced"]'));
-            return elements.map(el => el.innerText.trim()).filter(Boolean);
+            const elements = Array.from(document.querySelectorAll('body *'));
+            return elements
+                .filter(el => /boost|förhöjt odds|enhanced/i.test(el.innerText))
+                .map(el => el.innerText.trim())
+                .filter(Boolean);
         });
         return { bookmaker: bookmaker.name, boosts };
     } catch (err) {
@@ -22,6 +26,7 @@ async function fetchBoosts(bookmaker, page) {
     }
 }
 
+// Ladda upp filen till WordPress via FTP
 async function uploadToFTP() {
     const client = new ftp.Client();
     client.ftp.verbose = true;
@@ -29,33 +34,35 @@ async function uploadToFTP() {
         await client.access({
             host: process.env.FTP_HOST,
             user: process.env.FTP_USER,
-            password: process.env.FTP_PASS,
+            password: process.env.FTP_PASSWORD,
             secure: false
         });
         await client.uploadFrom("boosts.html", "/wp-content/uploads/oddsbot/boosts.html");
         console.log("boosts.html uppladdad till WordPress!");
     } catch(err) {
-        console.error(err);
+        console.error("FTP-fel:", err);
+    } finally {
+        client.close();
     }
-    client.close();
 }
+
 (async () => {
     const browser = await puppeteer.launch({
-  headless: "new",
-  args: [
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--disable-dev-shm-usage",
-    "--disable-gpu",
-    "--no-zygote",
-    "--single-process"
-  ]
-});
+        headless: "new",
+        args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-gpu",
+            "--no-zygote",
+            "--single-process"
+        ]
+    });
+
     const page = await browser.newPage();
     page.setDefaultNavigationTimeout(60000);
 
     const results = [];
-
     for (const bookmaker of bookmakers) {
         console.log(`Hämtar oddsboostar från ${bookmaker.name}...`);
         const data = await fetchBoosts(bookmaker, page);
@@ -64,6 +71,7 @@ async function uploadToFTP() {
 
     await browser.close();
 
+    // Bygg HTML-widget
     let html = `<div class="oddsboost-widget"><h2>⚡ Oddsboostar</h2>`;
     for (const result of results) {
         if (result.boosts.length > 0) {
@@ -74,8 +82,10 @@ async function uploadToFTP() {
     }
     html += `</div>`;
 
+    // Skriv till fil
     fs.writeFileSync('boosts.html', html, 'utf-8');
     console.log('boosts.html skapad/uppdaterad!');
 
+    // Ladda upp till WordPress
     await uploadToFTP();
 })();
