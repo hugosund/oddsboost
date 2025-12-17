@@ -2,7 +2,7 @@ const fs = require('fs');
 const puppeteer = require('puppeteer');
 const ftp = require('basic-ftp');
 
-// Lista över bettingsidor med svensk licens
+// Alla bettingsidor med svensk licens
 const bookmakers = [
     { name: "Bet365", url: "https://www.bet365.com/#/HO/" },
     { name: "BetMGM", url: "https://www.betmgm.se/sport#featured" },
@@ -38,7 +38,6 @@ async function fetchBoosts(bookmaker, page) {
 async function uploadToFTP() {
     const client = new ftp.Client();
     client.ftp.verbose = true;
-
     try {
         await client.access({
             host: process.env.FTP_HOST,
@@ -46,16 +45,11 @@ async function uploadToFTP() {
             password: process.env.FTP_PASSWORD,
             secure: false
         });
-
-        // Navigera till korrekt domän-root först
-        await client.cd("/svenskaspeltips.com/public_html");
-
-        // Ladda upp filen rätt i WordPress-mappen
+        // OBS: Ändra här till den domän du vill använda
         await client.uploadFrom(
             "boosts.html",
-            "wp-content/uploads/oddsbot/boosts.html"
+            "/svenskaspeltips.com/public_html/wp-content/uploads/oddsbot/boosts.html"
         );
-
         console.log("boosts.html uppladdad till WordPress!");
     } catch (err) {
         console.error("FTP‑fel:", err);
@@ -67,6 +61,7 @@ async function uploadToFTP() {
 (async () => {
     const browser = await puppeteer.launch({
         headless: "new",
+        executablePath: "/usr/bin/chromium", // Railway system-Chromium
         args: [
             "--no-sandbox",
             "--disable-setuid-sandbox",
