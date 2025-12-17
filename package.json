@@ -1,12 +1,12 @@
 {
-  "name": "oddsbot",
+  "name": "oddsboost",
   "version": "1.0.0",
   "main": "scrapeBoosts.js",
   "scripts": {
     "start": "node scrapeBoosts.js"
   },
   "dependencies": {
-    "puppeteer": "^21.7.0",
-    "basic-ftp": "^5.0.0"
+    "basic-ftp": "^5.0.0",
+    "node-fetch": "^3.3.2"
   }
 }
