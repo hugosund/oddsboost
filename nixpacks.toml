@@ -1,0 +1,18 @@
+[phases.setup]
+aptPkgs = [
+    "chromium",
+    "ca-certificates",
+    "fonts-liberation",
+    "libnss3",
+    "libatk1.0-0",
+    "libatk-bridge2.0-0",
+    "libx11-xcb1",
+    "libxcomposite1",
+    "libxcursor1",
+    "libxdamage1",
+    "libxrandr2",
+    "libxss1",
+    "libxtst6",
+    "libasound2",
+    "libgbm1"
+]
