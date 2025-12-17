@@ -1,5 +1,5 @@
 {
-  "name": "oddsbot",
+  "name": "oddsboost",
   "version": "1.0.0",
   "main": "scrapeBoosts.js",
   "scripts": {
