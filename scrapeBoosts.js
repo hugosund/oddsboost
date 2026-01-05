@@ -2,7 +2,7 @@ const fs = require("fs");
 const puppeteer = require("puppeteer");
 
 (async () => {
-    console.log("🚀 Startar oddsboost-sökning (Svenska Spel)…");
+    console.log("🚀 Startar analys av Svenska Spel (detaljerad)…");
 
     const browser = await puppeteer.launch({
         headless: "new",
@@ -23,22 +23,33 @@ const puppeteer = require("puppeteer");
 
     console.log("🌐 Svenska Spel laddad");
 
-    const boosts = await page.evaluate(() => {
+    const matches = await page.evaluate(() => {
+        const results = [];
         const keywords = /boost|förhöjt|special|kampanj/i;
-        return Array.from(document.querySelectorAll("body *"))
-            .map(el => el.innerText?.trim())
-            .filter(text => text && keywords.test(text))
-            .slice(0, 50);
+
+        document.querySelectorAll("body *").forEach(el => {
+            const text = el.innerText?.trim();
+            if (text && keywords.test(text) && text.length < 300) {
+                results.push({
+                    text,
+                    tag: el.tagName,
+                    class: el.className,
+                    snippet: el.outerHTML.slice(0, 500)
+                });
+            }
+        });
+
+        return results;
     });
 
     fs.writeFileSync(
-        "svenskaspel_boosts.json",
-        JSON.stringify(boosts, null, 2),
+        "svenskaspel_debug.json",
+        JSON.stringify(matches, null, 2),
         "utf-8"
     );
 
-    console.log(`💾 Hittade ${boosts.length} träffar`);
-    console.log("🎉 STEG 5 KLAR");
+    console.log(`💾 Hittade ${matches.length} relevanta element`);
+    console.log("🎉 STEG 6 KLAR");
 
     await browser.close();
 })();
