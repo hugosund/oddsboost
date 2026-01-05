@@ -2,7 +2,7 @@ const fs = require("fs");
 const puppeteer = require("puppeteer");
 
 (async () => {
-    console.log("🚀 Startar oddsboost-sökning (Bet365)…");
+    console.log("🚀 Startar oddsboost-sökning (Svenska Spel)…");
 
     const browser = await puppeteer.launch({
         headless: "new",
@@ -15,15 +15,16 @@ const puppeteer = require("puppeteer");
     });
 
     const page = await browser.newPage();
-    await page.goto("https://www.bet365.com/#/HO/", {
+
+    await page.goto("https://www.svenskaspel.se/sport", {
         waitUntil: "networkidle2",
         timeout: 60000
     });
 
-    console.log("🌐 Bet365 laddad");
+    console.log("🌐 Svenska Spel laddad");
 
     const boosts = await page.evaluate(() => {
-        const keywords = /boost|enhanced|förhöjt|oddsboost/i;
+        const keywords = /boost|förhöjt|special|kampanj/i;
         return Array.from(document.querySelectorAll("body *"))
             .map(el => el.innerText?.trim())
             .filter(text => text && keywords.test(text))
@@ -31,13 +32,13 @@ const puppeteer = require("puppeteer");
     });
 
     fs.writeFileSync(
-        "bet365_boosts.json",
+        "svenskaspel_boosts.json",
         JSON.stringify(boosts, null, 2),
         "utf-8"
     );
 
-    console.log(`💾 Hittade ${boosts.length} potentiella träffar`);
-    console.log("🎉 STEG 4 KLAR");
+    console.log(`💾 Hittade ${boosts.length} träffar`);
+    console.log("🎉 STEG 5 KLAR");
 
     await browser.close();
 })();
