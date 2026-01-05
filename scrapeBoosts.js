@@ -2,7 +2,7 @@ const fs = require("fs");
 const puppeteer = require("puppeteer");
 
 (async () => {
-    console.log("🚀 Startar bookmaker-test…");
+    console.log("🚀 Startar oddsboost-sökning (Bet365)…");
 
     const browser = await puppeteer.launch({
         headless: "new",
@@ -22,13 +22,22 @@ const puppeteer = require("puppeteer");
 
     console.log("🌐 Bet365 laddad");
 
-    const textSample = await page.evaluate(() => {
-        return document.body.innerText.slice(0, 1000);
+    const boosts = await page.evaluate(() => {
+        const keywords = /boost|enhanced|förhöjt|oddsboost/i;
+        return Array.from(document.querySelectorAll("body *"))
+            .map(el => el.innerText?.trim())
+            .filter(text => text && keywords.test(text))
+            .slice(0, 50);
     });
 
-    fs.writeFileSync("bet365_test.txt", textSample, "utf-8");
-    console.log("💾 bet365_test.txt skapad");
+    fs.writeFileSync(
+        "bet365_boosts.json",
+        JSON.stringify(boosts, null, 2),
+        "utf-8"
+    );
+
+    console.log(`💾 Hittade ${boosts.length} potentiella träffar`);
+    console.log("🎉 STEG 4 KLAR");
 
     await browser.close();
-    console.log("🎉 STEG 3 KLAR");
 })();
