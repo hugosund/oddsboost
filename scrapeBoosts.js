@@ -2,7 +2,7 @@ const fs = require("fs");
 const puppeteer = require("puppeteer");
 
 (async () => {
-    console.log("🚀 Startar test av Puppeteer…");
+    console.log("🚀 Startar bookmaker-test…");
 
     const browser = await puppeteer.launch({
         headless: "new",
@@ -14,29 +14,21 @@ const puppeteer = require("puppeteer");
         ]
     });
 
-    console.log("✅ Browser startad");
-
     const page = await browser.newPage();
-
-    console.log("🌐 Besöker Svenska Spel…");
-    await page.goto("https://www.svenskaspel.se/sport", {
-        waitUntil: "domcontentloaded",
+    await page.goto("https://www.bet365.com/#/HO/", {
+        waitUntil: "networkidle2",
         timeout: 60000
     });
 
-    const title = await page.title();
-    console.log("📄 Sidtitel:", title);
+    console.log("🌐 Bet365 laddad");
 
-    const html = `
-        <h1>Puppeteer test OK</h1>
-        <p>Sidtitel: ${title}</p>
-        <p>Datum: ${new Date().toISOString()}</p>
-    `;
+    const textSample = await page.evaluate(() => {
+        return document.body.innerText.slice(0, 1000);
+    });
 
-    fs.writeFileSync("test.html", html, "utf8");
-    console.log("💾 test.html skapad");
+    fs.writeFileSync("bet365_test.txt", textSample, "utf-8");
+    console.log("💾 bet365_test.txt skapad");
 
     await browser.close();
-    console.log("🛑 Browser stängd");
-    console.log("🎉 TEST KLAR – ALLT FUNKAR");
+    console.log("🎉 STEG 3 KLAR");
 })();
