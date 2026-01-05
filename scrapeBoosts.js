@@ -2,7 +2,7 @@ const fs = require("fs");
 const puppeteer = require("puppeteer");
 
 (async () => {
-    console.log("🚀 Startar analys av Svenska Spel (detaljerad)…");
+    console.log("🚀 Startar djupanalys av Svenska Spel…");
 
     const browser = await puppeteer.launch({
         headless: "new",
@@ -17,39 +17,31 @@ const puppeteer = require("puppeteer");
     const page = await browser.newPage();
 
     await page.goto("https://www.svenskaspel.se/sport", {
-        waitUntil: "networkidle2",
+        waitUntil: "domcontentloaded",
         timeout: 60000
     });
 
-    console.log("🌐 Svenska Spel laddad");
+    console.log("🌐 Sida laddad – väntar på frontend…");
 
-    const matches = await page.evaluate(() => {
-        const results = [];
-        const keywords = /boost|förhöjt|special|kampanj/i;
+    // Vänta extra tid (React / SPA)
+    await page.waitForTimeout(10000);
 
-        document.querySelectorAll("body *").forEach(el => {
-            const text = el.innerText?.trim();
-            if (text && keywords.test(text) && text.length < 300) {
-                results.push({
-                    text,
-                    tag: el.tagName,
-                    class: el.className,
-                    snippet: el.outerHTML.slice(0, 500)
-                });
-            }
-        });
-
-        return results;
+    // Scrolla sidan för att trigga lazy loading
+    await page.evaluate(async () => {
+        for (let i = 0; i < 5; i++) {
+            window.scrollBy(0, window.innerHeight);
+            await new Promise(r => setTimeout(r, 2000));
+        }
     });
 
-    fs.writeFileSync(
-        "svenskaspel_debug.json",
-        JSON.stringify(matches, null, 2),
-        "utf-8"
-    );
+    console.log("📜 Scroll klar – extraherar all synlig text…");
 
-    console.log(`💾 Hittade ${matches.length} relevanta element`);
-    console.log("🎉 STEG 6 KLAR");
+    const fullText = await page.evaluate(() => document.body.innerText);
+
+    fs.writeFileSync("svenskaspel_fulltext.txt", fullText, "utf-8");
+
+    console.log("💾 svenskaspel_fulltext.txt skapad");
+    console.log("🎉 STEG 7 KLAR");
 
     await browser.close();
 })();
