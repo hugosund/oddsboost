@@ -1,6 +1,9 @@
 const fs = require("fs");
 const puppeteer = require("puppeteer");
 
+// Enkel sleep-funktion (ersätter page.waitForTimeout)
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 (async () => {
     console.log("🚀 Startar djupanalys av Svenska Spel…");
 
@@ -24,9 +27,10 @@ const puppeteer = require("puppeteer");
     console.log("🌐 Sida laddad – väntar på frontend…");
 
     // Vänta extra tid (React / SPA)
-    await page.waitForTimeout(10000);
+    await sleep(10000);
 
     // Scrolla sidan för att trigga lazy loading
+    console.log("📜 Scrollar sidan…");
     await page.evaluate(async () => {
         for (let i = 0; i < 5; i++) {
             window.scrollBy(0, window.innerHeight);
@@ -34,7 +38,7 @@ const puppeteer = require("puppeteer");
         }
     });
 
-    console.log("📜 Scroll klar – extraherar all synlig text…");
+    console.log("🔍 Extraherar all synlig text…");
 
     const fullText = await page.evaluate(() => document.body.innerText);
 
